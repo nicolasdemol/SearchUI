@@ -1,44 +1,50 @@
-# CommonLibSSE Sample Plugin
+# SearchUI
+
+Mod here : https://www.nexusmods.com/skyrimspecialedition/mods/155713?tab=files
 A sample SKSE plugin developed in C++. This project is meant to be used both as a template for modern SKSE plugin
 development, when starting a new project, or as a tutorial project for those new to CommonLibSSE development who want a
 complete and modern project from which to learn.
 
 ## Table of Contents
-* [Getting Started](#getting-started)
-  * [Environment Setup](#environment-setup)
-    * [Installing Visual Studio](#installing-visual-studio)
-    * [Installing Git](#installing-git)
-    * [Vcpkg Install and Configuration](#vcpkg-install-and-configuration)
-  * [Cloning the Repository](#cloning-the-repository)
-    * [Importing the Project into Your IDE](#importing-the-project-into-your-ide)
-      * [Visual Studio](#visual-studio)
-      * [Visual Studio Code](#visual-studio-code)
-* [Understanding the Project](#understanding-the-project)
-  * [Build Features](#build-features)
-    * [Vcpkg Integration](#vcpkg-integration)
-    * [Multi-Runtime Builds](#multi-runtime-builds)
-    * [Clang Support](#clang-support)
-    * [Automatic Deployment](#automatic-deployment)
-    * [Unit Testing](#unit-testing)
-    * [DLL Metadata](#dll-metadata)
-    * [Miscellaneous Elements](#miscellaneous-elements)
-  * [Plugin Structure](#plugin-structure)
-    * [Plugin Initialization](#plugin-initialization)
-    * [Logging](#logging)
-    * [Configuration](#configuration)
-    * [Messaging and Lifecycle Events](#messaging-and-lifecycle-events)
-    * [Papyrus Bindings](#papyrus-bindings)
-    * [Papyrus Development](#papyrus-development)
-    * [Serialization (the SKSE Cosave)](#serialization-the-skse-cosave)
-    * [Function Hooks](#function-hooks)
-  * [Other Features](#other-features)
-    * [Source Code Formatting](#source-code-formatting)
-    * [Deploying a FOMOD](#deploying-a-fomod)
-    * [Licensing](#licensing)
+
+- [Getting Started](#getting-started)
+  - [Environment Setup](#environment-setup)
+    - [Installing Visual Studio](#installing-visual-studio)
+    - [Installing Git](#installing-git)
+    - [Vcpkg Install and Configuration](#vcpkg-install-and-configuration)
+  - [Cloning the Repository](#cloning-the-repository)
+    - [Importing the Project into Your IDE](#importing-the-project-into-your-ide)
+      - [Visual Studio](#visual-studio)
+      - [Visual Studio Code](#visual-studio-code)
+- [Understanding the Project](#understanding-the-project)
+  - [Build Features](#build-features)
+    - [Vcpkg Integration](#vcpkg-integration)
+    - [Multi-Runtime Builds](#multi-runtime-builds)
+    - [Clang Support](#clang-support)
+    - [Automatic Deployment](#automatic-deployment)
+    - [Unit Testing](#unit-testing)
+    - [DLL Metadata](#dll-metadata)
+    - [Miscellaneous Elements](#miscellaneous-elements)
+  - [Plugin Structure](#plugin-structure)
+    - [Plugin Initialization](#plugin-initialization)
+    - [Logging](#logging)
+    - [Configuration](#configuration)
+    - [Messaging and Lifecycle Events](#messaging-and-lifecycle-events)
+    - [Papyrus Bindings](#papyrus-bindings)
+    - [Papyrus Development](#papyrus-development)
+    - [Serialization (the SKSE Cosave)](#serialization-the-skse-cosave)
+    - [Function Hooks](#function-hooks)
+  - [Other Features](#other-features)
+    - [Source Code Formatting](#source-code-formatting)
+    - [Deploying a FOMOD](#deploying-a-fomod)
+    - [Licensing](#licensing)
 
 ## Getting Started
+
 ### Environment Setup
+
 #### Installing Visual Studio
+
 To do Windows development you will need to install [Visual Studio](https://visualstudio.microsoft.com/). The Community
 Edition is free to install, but you must create a Visual Studio account. During install you will be presented with
 the components you wish to install for development. The only one required for SKSE development is "Desktop development
@@ -47,6 +53,7 @@ with C++". Select it and leave the detailed options on the right untouched unles
 ![Visual Studio Installer](docs/visual-studio-install.png)
 
 #### Installing/Configuring Visual Studio Code
+
 The Visual Studio installer includes the Visual Studio IDE as well as the development tools needed for C++ development.
 However, many SKSE developers use Papyrus as well, since SKSE can be used to add new Papyrus bindings. This is typically
 done using Visual Studio Code as it has advanced plugins for Papyrus development other IDEs lack. You can [download
@@ -60,10 +67,12 @@ development workspaces in VS Code.
 ![Visual Studio Code Papyrus Extension Install](docs/vscode-papyrus-install.png)
 
 #### Installing Git
+
 If you do not already have Git installed, [download and install it](https://gitforwindows.org/) (you do not need to
 worry about the specific configuration options during install).
 
 #### Vcpkg Install and Configuration
+
 Vcpkg is a package manager for C/C++ libraries, which makes integrating third-party libraries into your project easy. It
 is also installed with Git. Clone Vcpkg and then set it up by running the following commands:
 
@@ -88,6 +97,7 @@ until they are restarted.
 ![Environment Variables Settings](docs/vcpkg-env.png)
 
 ### Cloning the Repository
+
 Clone this repository to your local machine by running
 the following command at the command line (using Command Prompt, Powershell, or Windows Terminal):
 
@@ -98,7 +108,9 @@ git clone https://gitlab.com/colorglass/commonlibsse-sample-plugin.git
 This will create a directory called `commonlibsse-sample-plugin` with a clone of this project.
 
 ### Importing the Project into Your IDE
+
 #### Visual Studio
+
 Open Visual Studio. You will be presented with a launch screen that lets you select the project to work on. You want to
 select "Open a local folder".
 
@@ -133,6 +145,7 @@ your first SKSE plugin! You can find the DLL in the project directory under `bui
 ![Visual Studio CMake Import In Progress](docs/visual-studio-build-success.png)
 
 #### Visual Studio Code
+
 The sample project comes with configuration out-of-the-box for doing Papyrus development in Visual Studio Code. Doing so
 requires that the Skyrim vanilla script sources, and the SKSE sources, are available. Therefore, you should load your
 project for C++ development in Visual Studio first, and wait until the CMake configuration has completed, before doing
@@ -144,8 +157,11 @@ project file `CommonLibSSESamplePlugin.code-workspace` and open it. This gives y
 everything prepared for Papyrus development.
 
 ## Understanding the Project
+
 ### Build Features
+
 #### Vcpkg Integration
+
 Like many SKSE projects, this sample project uses Vcpkg to manage dependencies that are needed to build and run the
 project. However one advanced feature seen here is the use of Vcpkg to manage even Skyrim-oriented dependencies.
 Traditionally projects like CommonLibSSE were included via a Git submodule. This has a number of disadvantages. It
@@ -161,16 +177,16 @@ Skyrim VR.
 
 ```json
 {
-    "registries": [
-        {
-            "kind": "git",
-            "repository": "https://gitlab.com/colorglass/vcpkg-colorglass",
-            "baseline": "59ebdd824b295fad4effcdccfe6e6aaa47ff4764",
-            "packages": [
-              // ...
-            ]
-        }
-    ]
+  "registries": [
+    {
+      "kind": "git",
+      "repository": "https://gitlab.com/colorglass/vcpkg-colorglass",
+      "baseline": "59ebdd824b295fad4effcdccfe6e6aaa47ff4764",
+      "packages": [
+        // ...
+      ]
+    }
+  ]
 }
 ```
 
@@ -186,6 +202,7 @@ The availability of these projects is handled by the `vcpkg-configuration.json` 
 repository hosted by Color-Glass Studios, and is a big step forward in streamlining the development process.
 
 #### Multi-Runtime Builds
+
 A major problem with developing for modern Skyrim is the fragmentation of Skyrim runtimes between pre-AE executables,
 post-AE executables, and Skyrim VR. This project demonstrates how to achieve support for all three in a single codebase.
 The version of CommonLibSSE used in this project is a fork from the Skyrim NG project called CommonLibSSE NG, which
@@ -194,6 +211,7 @@ able to work with any version of Skyrim. Users will not need to choose a correct
 install.
 
 #### Clang Support
+
 If used with CommonLibSSE NG as the CommonLibSSE fork (the default choice), then it is possible to build the project
 with the Clang compiler. Two CMake presets for Clang, a debug and release build, are included. Clang-CL must be
 available in `PATH` to build with Clang. This can be done easily by installing Clang from the Visual Studio Installer.
@@ -201,6 +219,7 @@ However, this version is currently out of date, and so it is recommended to inst
 releases page, and add its `bin` directory to `PATH` yourself.
 
 #### Automatic Deployment
+
 When building the sample project, build results are automatically deployed to `contrib/Distribution`. This directory
 has the FOMOD installer for the project. DLL and PDB files are copied automatically. In addition, the CMake clean action
 has been extended to clean this files in the FOMOD directory. The project also integrates with the Papyrus extension for
@@ -215,6 +234,7 @@ immediately be able to run Skyrim from MO2 to see the results. This variable is 
 so if you are multi-targeting you can deploy to multiple locations, such as separate AE, SE, and VR mod lists.
 
 #### Unit Testing
+
 The project comes with built-in support for running unit tests with Catch2. The build produces an executable with all
 Catch2 unit tests; running this executable will run the tests. See `test/HitCounterManager.cpp` for an example. Catch2
 has native support in the CLion IDE, and support can be added to Visual Studio and Visual Studio Code with extensions in
@@ -238,12 +258,14 @@ This is a feature supported currently only in the CommonLibSSE NG fork and is an
 sample.
 
 #### DLL Metadata
+
 This project comes with a `version.rc.in` file which generates metadata for your output. This embeds things like your
 project's name, version number, and licensing into the DLL file, so it shows up in the Windows properties dialog for
 the DLL. The metadata comes from the CMake project definition. The same information is also used to inject the correct
 name and version number into a header file (`PluginInfo.h`) to be used in declaring the plugin to SKSE.
 
 #### Miscellaneous Elements
+
 The CMake configuration for the project addresses common issues with C++ development with Visual Studio.
 
 ```cmake
@@ -297,7 +319,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE CommonLibSSESamplePlugin)
 ```
 
 ### Plugin Structure
+
 #### Plugin Initialization
+
 When SKSE starts, it searches `Data\SKSE\Plugins` for DLL files. Each DLL file is inspected to determine if it is a
 proper SKSE plugin. The way in which this is done differs between SE/VR and AE versions of SKSE, and this project is
 designed to support all of these cases.
@@ -323,7 +347,7 @@ add_commonlibsse_plugin(${PROJECT_NAME}
 )
 ```
 
-It is *strongly* encouraged that you use Address Library whenever possible.
+It is _strongly_ encouraged that you use Address Library whenever possible.
 
 Once valid SKSE plugins have been identified, SKSE will call their `SKSEPlugin_Load` functions one at a time. This
 function must also be present or the SKSE plugin will not be loaded, and the function must have a particular signature.
@@ -348,6 +372,7 @@ followed by this function. Calls to other interfaces such as messaging, serializ
 this function to be called first.
 
 #### Logging
+
 Logging is an important way to capture information that helps you debug issues with your plugin, especially when it is
 running on end-users' games. CommonLibSSE bundles spdlog, a popular logging library, and provides some convience
 functions for invoking it. It otherwise leaves configuration up to you. More advanced logging systems are available
@@ -364,6 +389,7 @@ time that SKSE starts. Instead of writing to file, it will write to the Windows 
 debugger to see the messages. The log events will then show up in your IDE console instead of a log file.
 
 #### Configuration
+
 Many SKSE plugins have configuration options, controlled via a config file. This plugin has a basic YAML config file
 that can customize the log levels of the logger. The parsing for the log file is handled by the Articuno serialization
 library, a next-generation serialization library that can easily map YAML, JSON, TOML, and other formats to C++
@@ -371,6 +397,7 @@ classes. You can find the config logic in `src/Config.h` and `src/Config.cpp`. T
 the config object to query the log levels it should use.
 
 #### Messaging and Lifecycle Events
+
 SKSE plugins can exchange information without strong coupling using SKSE as a message bus. This allows a plugin to
 broadcast a message with a particular message ID and arbitrary data attached to it, for which other plugins can register
 to listen. It is not common for plugins to broadcast information this way, however SKSE itself also broadcasts messages
@@ -388,16 +415,18 @@ it is safe to begin using multithreaded operations and interacting with other pl
 `SKSE::MessagingInterface::kDataLoaded` fires.
 
 In addition to these messages, there are several other messages related to gameplay:
-* `SKSE::MessagingInterface::kNewGame`: the user has started a new game by selecting New Game at the main menu.
-* `SKSE::MessagingInterface::kSaveGame`: the user has saved their game.
-* `SKSE::MessagingInterface::kDeleteGame`: the user has deleted a save game.
-* `SKSE::MessagingInterface::kPostLoadGame`: the user has loaded a saved game.
-* `SKSE::MessagingInterface::kPreLoadGame`: the user has selected a saved game to load, but it has not loaded yet.
+
+- `SKSE::MessagingInterface::kNewGame`: the user has started a new game by selecting New Game at the main menu.
+- `SKSE::MessagingInterface::kSaveGame`: the user has saved their game.
+- `SKSE::MessagingInterface::kDeleteGame`: the user has deleted a save game.
+- `SKSE::MessagingInterface::kPostLoadGame`: the user has loaded a saved game.
+- `SKSE::MessagingInterface::kPreLoadGame`: the user has selected a saved game to load, but it has not loaded yet.
 
 In this sample project we initialize the function hooks in `kDataLoaded`; this is not necessary, as this can be done
 in `SKSEPlugin_Load`, but it is done here as a demonstration of how messaging works.
 
 #### Papyrus Bindings
+
 You can add new Papyrus functions that are implemented in native code using SKSE. The sample project starts this process
 in the load time of the plugin, when it gets the Papyrus interfaces with `SKSE::GetPapyrusInterface()`. This call
 returns an interface that can be used to call a registration callback. When Skyrim is still loading, the Papyrus virtual
@@ -463,6 +492,7 @@ int32_t GetCount(StaticFunctionTag*, Actor* actor) {
 ```
 
 #### Papyrus Development
+
 To work with your Papyrus scripts, use the Papyrus project view in Visual Studio Code. You an press `Ctrl+Shift+B` to
 activate the build task. The sample project has three build tasks, one to build the Papyrus scripts in debug mode, one
 to build the in release mode (with optimizations), and one to build tests (in debug mode only; this builds the script
@@ -471,9 +501,10 @@ populate the proper script folders in the FOMOD directory (`contrib/Distribution
 they can be included in the final FOMOD archive.
 
 #### Serialization (the SKSE Cosave)
+
 Our sample project is tracking how many times each actor is hit, but the state of our plugin will be reverted after
 every game load. We need it to track the hit counts in the save game, and restore that count when the game is loaded.
-SKSE provides a *cosave* for this purpose. SKSE plugins add their own custom data to the cosave, which is stored in a
+SKSE provides a _cosave_ for this purpose. SKSE plugins add their own custom data to the cosave, which is stored in a
 separate file alongside the original Skyrim save file. Each plugin can register one callback to handle the cosave for
 saving, loading, and reverting the game to its default state (used when a new game starts or a a save is about to be
 loaded).
@@ -481,6 +512,7 @@ loaded).
 Each plugin must use a unique ID for its content in the save file.
 
 #### Function Hooks
+
 Function hooking is the act of intercepting a function, or a function call site, and replacing the functionality with
 your own. This is a common way of performing advanced operations that Skyrim's normal interfaces through Papyrus do not
 support. Function hooking and reverse engineering is a broad topic and will not be covered in its totality in this
@@ -494,7 +526,7 @@ There are other libraries easily available which can perform function hooking. B
 targeted by CommonLibSSE, that is what is used in this project (note that sometimes either method can be used, but often
 you specifically want to use one method or the other).
 
-An important concept for hooking functions is a *trampoline*. When you hook a function you are overwriting the
+An important concept for hooking functions is a _trampoline_. When you hook a function you are overwriting the
 executable code in memory. This necessarily replaces existing code. When doing this, a trampoline is a function that
 copies the overwritten code as well as a call to the point where the code would have continued after those instructions
 were executed. This takes memory, and so we must allocate memory for it. CommonLibSSE has a `SKSE::Trampoline` type for
@@ -572,7 +604,9 @@ increment it's hit count. After that we pass the call along to the original func
 originally did.
 
 ### Other Features
+
 #### Source Code Formatting
+
 The project ships with `.clang-format` file, which defines the source code formatting standard. Clang's format tool can
 automatically format your source code, and this tool is also integrated into common IDE's. Using your IDE's automatic
 formatting function should apply these rules, making them universal across all IDE's.
@@ -582,6 +616,7 @@ authors use different ones. You can customize the file to find the style that yo
 [Clang-Format Configurator](https://zed0.co.uk/clang-format-configurator/) is a useful tool for generating a file.
 
 #### Deploying a FOMOD
+
 Under `contrib/Distribution` is the FOMOD structure for a deployable mod that could be posted to e.g. Nexus Mods. The
 FOMOD configuration itself is located at `contrib/Distribution/fomod`. The other directories contain various portions of
 what will be installed. The FOMOD structure is designed to also allow the Papyrus sources held here to be the used for
@@ -601,6 +636,7 @@ VR it is the only choice available. If `SkyrimVR.esm` is not found then the Skyr
 has a choice between installing for AE or SE (which one is in use cannot be auto-detected with existing FOMOD features).
 
 #### Licensing
+
 Licensing is a commonly overlooked concern in the modding community. It is common to find projects with no license or an
 arbitrary license with no legal evaluation. In the Skyrim NG project we strongly recommend choosing an open source
 license for your project. This allows others to learn from and reuse your code for further development, and ensures that
@@ -618,5 +654,7 @@ services.
 
 If you are keeping the Apache License 2.0 `LICENSE` file for your project and using this sample plugin as a template, be
 sure to update line 190 with your custom information.
+
 # SearchUI
+
 # SearchUI
