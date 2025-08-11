@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <Sample/Search.h>
+#include <Sample/AsyncSearch.h>
 
 using namespace RE;
 using namespace RE::BSScript;
@@ -40,8 +41,8 @@ namespace {
                 "Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true));
         }
         const auto& debugConfig = Sample::Config::GetSingleton().GetDebug();
-        log->set_level(debugConfig.GetLogLevel());
-        log->flush_on(debugConfig.GetFlushLevel());
+        log->set_level(spdlog::level::trace);  // Forcer le niveau maximal de log
+        log->flush_on(spdlog::level::trace);   // Forcer le niveau maximal de log
 
         spdlog::set_default_logger(std::move(log));
         spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%t] [%s:%#] %v");
@@ -102,6 +103,20 @@ namespace {
                     break;
                 case MessagingInterface::kDataLoaded: // All ESM/ESL/ESP plugins have loaded, main menu is now active.
                     // It is now safe to access form data.
+                    log::info("Data loaded scheduling AsyncSearch updates...");
+
+                    SKSE::GetTaskInterface()->AddUITask([] {
+                        struct SearchUpdate : public RE::BSTEventSink<RE::MenuOpenCloseEvent> {
+                            RE::BSEventNotifyControl ProcessEvent(
+                                const RE::MenuOpenCloseEvent*, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override {
+                                Sample::AsyncSearch::Get().Update();
+                                return RE::BSEventNotifyControl::kContinue;
+                            }
+                        };
+                        static SearchUpdate updateHandler;
+                        RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(&updateHandler);
+                        log::info("AsyncSearch update handler hooked.");
+                    });
                     break;
 
                 // Skyrim game events.

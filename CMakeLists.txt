@@ -21,13 +21,15 @@ configure_file(
         @ONLY)
 
 set(headers
-        include/Sample/Search.h)
+        include/Sample/Search.h
+        include/Sample/AsyncSearch.h)
 
 set(sources
         src/Config.cpp
         src/Main.cpp
         src/Papyrus.cpp
         src/Search.cpp
+        src/AsyncSearch.cpp
 
         ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 

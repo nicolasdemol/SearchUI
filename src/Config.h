@@ -16,7 +16,7 @@ namespace Sample {
         void LoadFromYAML(const YAML::Node& node);
 
     private:
-        spdlog::level::level_enum _logLevel{spdlog::level::info};
+        spdlog::level::level_enum _logLevel{spdlog::level::trace};
         spdlog::level::level_enum _flushLevel{spdlog::level::trace};
     };
 
