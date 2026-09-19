@@ -5,7 +5,7 @@
 #include <fstream>
 #include <mutex>
 
-using namespace Sample;
+using namespace SearchUI;
 
 void Debug::LoadFromYAML(const YAML::Node& node) {
     if (node["logLevel"]) {
@@ -40,7 +40,8 @@ const Config& Config::GetSingleton() noexcept {
 
 void Config::LoadFromFile() {
     try {
-        YAML::Node root = YAML::LoadFile("Data/SKSE/Plugins/CommonLibSSESamplePlugin.yaml");
+        if (!std::filesystem::exists("Data/SKSE/Plugins/SearchUI.yaml")) return;
+        YAML::Node root = YAML::LoadFile("Data/SKSE/Plugins/SearchUI.yaml");
         if (root["debug"]) {
             _debug.LoadFromYAML(root["debug"]);
         } else {

@@ -2,6 +2,6 @@
 
 #include <RE/Skyrim.h>
 
-namespace Sample {
+namespace SearchUI {
     bool RegisterPapyrusFuncs(RE::BSScript::IVirtualMachine* vm);
-}  // namespace Sample
+}  // namespace SearchUI

@@ -1,77 +1,75 @@
-﻿#include "Papyrus.h"
-
-#include <Sample/Search.h>
-#include <Sample/AsyncSearch.h>
-
-using namespace Sample;
+#include "Papyrus.h"
+#include <SearchUI/Search.h>
+#include <SearchUI/AsyncSearch.h>
+#include <SearchUI/Preferences.h>
+using namespace SearchUI;
 using namespace RE;
-using namespace RE::BSScript;
-using namespace REL;
-using namespace SKSE;
-
 namespace {
     constexpr std::string_view PapyrusClass = "SearchAPI";
-    // Fonction Papyrus : int GetSearchCount()
-    int32_t GetSearchCount(StaticFunctionTag*) { return static_cast<int32_t>(GetLastResults().size()); }
-
-    // Fonction Papyrus : string GetSearchResultName(int index)
-    BSFixedString GetSearchResultName(StaticFunctionTag*, int32_t index) {
-        if (index >= 0 && index < static_cast<std::int32_t>(GetLastResults().size())) {
-            return GetLastResults()[index].name.c_str();
-        }
-        return "";
+    SearchSession& Session() { return AsyncSearch::Get().Session(); }
+    std::int32_t GetSearchCount(StaticFunctionTag*) { return static_cast<std::int32_t>(Session().Count()); }
+    BSFixedString GetSearchResultName(StaticFunctionTag*, std::int32_t index) { return Session().At(index).name.c_str(); }
+    // Compatibility shims for scripts/suspended calls from earlier builds.
+    // Removed plugin/phrase settings cannot affect the search engine.
+    BSFixedString GetSearchResultPlugin(StaticFunctionTag*, std::int32_t) { return ""; }
+    TESForm* GetSearchResult(StaticFunctionTag*, std::int32_t index) {
+        const auto result = Session().At(index);
+        return result.formID ? TESForm::LookupByID(result.formID) : nullptr;
     }
-
-    RE::TESForm* GetSearchResult(StaticFunctionTag*, int32_t index) {
-        if (index >= 0 && index < static_cast<std::int32_t>(GetLastResults().size())) {
-            return RE::TESForm::LookupByID(GetLastResults()[index].formID);
-        }
-        return nullptr;
+    void RunSearch(StaticFunctionTag*, BSFixedString term, bool, std::uint32_t mask) {
+        AsyncSearch::Get().RunSearch(term.c_str(), mask);
     }
-
-    // Fonction Papyrus : void RunSearch(string term, bool exactMatch)
-    void RunSearch(StaticFunctionTag*, BSFixedString term, bool exactMatch, uint32_t categoryMask) {
-        Search::FindFormsByName(term.c_str(), exactMatch, categoryMask);
+    void StartAsyncSearch(StaticFunctionTag*, BSFixedString term, bool, std::uint32_t mask) {
+        AsyncSearch::Get().QueueSearch(term.c_str(), mask);
     }
-
-    void AddResultsToContainer(StaticFunctionTag*, RE::TESObjectREFR* container, std::int32_t maxResults,
-                               std::int32_t consumableQty) {
-        Search::AddSearchResultsToContainer(container, maxResults, consumableQty);
+    void StartFilteredSearch(StaticFunctionTag*, BSFixedString term, bool, std::uint32_t mask,
+                             BSFixedString, std::int32_t enchantment) {
+        AsyncSearch::Get().QueueSearch(term.c_str(), mask, std::clamp(enchantment, 0, 2));
     }
-
-    void StartAsyncSearch(StaticFunctionTag*, BSFixedString term, bool exactMatch, uint32_t categoryMask) {
-        // Vider les anciens résultats immédiatement
-        SetLastResults({});
-
-        // Lancer la recherche asynchrone
-        AsyncSearch::Get().QueueSearch(term.c_str(), exactMatch, categoryMask,
-                                       [](std::vector<Search::Result> results) { SetLastResults(std::move(results)); });
+    void StartItemSearch(StaticFunctionTag*, BSFixedString term, std::uint32_t mask, std::int32_t enchantment) {
+        AsyncSearch::Get().QueueSearch(term.c_str(), mask, std::clamp(enchantment, 0, 2));
     }
-
-
-    bool IsSearchFinished(StaticFunctionTag*) {
-        // On suppose qu'une recherche est prête si GetLastResults() n'est pas vide
-        return !GetLastResults().empty();
+    bool IsSearchFinished(StaticFunctionTag*) { return Session().GetStatus() != SearchSession::Status::running; }
+    bool DidSearchFail(StaticFunctionTag*) { return Session().GetStatus() == SearchSession::Status::failed; }
+    void CancelSearch(StaticFunctionTag*) { AsyncSearch::Get().Cancel(); }
+    void AddResultsToContainer(StaticFunctionTag*, TESObjectREFR* container, std::int32_t maxResults, std::int32_t quantity) {
+        Search::AddSearchResultsToContainer(container, maxResults, quantity);
     }
-
-
-}  // namespace Sample
-
-/**
- * This is the function that acts as a registration callback for Papyrus functions. Within you can register functions
- * to bind to native code. The first argument of such bindings is the function name, the second is the class name, and
- * third is the function that will be invoked in C++ to handle it. The callback should return <code>true</code> on
- * success.
- */
-bool Sample::RegisterPapyrusFuncs(IVirtualMachine* vm) {
+    bool LoadPreferences(StaticFunctionTag*) { return UserPreferences().Load(); }
+    std::int32_t GetPreference(StaticFunctionTag*, BSFixedString key, std::int32_t fallback) {
+        if (key == "smart") return 1;
+        if (!UserPreferences().HasSaved()) return fallback;
+        return UserPreferences().Get().GetInt(key.c_str(), fallback);
+    }
+    BSFixedString GetPluginFilter(StaticFunctionTag*) { return ""; }
+    bool SavePreferences(StaticFunctionTag*, std::int32_t key, bool, std::int32_t maxResults,
+                          std::int32_t quantity, std::int32_t mask, BSFixedString, std::int32_t enchantment) {
+        return UserPreferences().Save({key, maxResults, quantity, mask, enchantment});
+    }
+    bool SaveSettings(StaticFunctionTag*, std::int32_t key, std::int32_t maxResults,
+                      std::int32_t quantity, std::int32_t mask, std::int32_t enchantment) {
+        return UserPreferences().Save({key, maxResults, quantity, mask, enchantment});
+    }
+}
+bool SearchUI::RegisterPapyrusFuncs(RE::BSScript::IVirtualMachine* vm) {
+    if (!vm) return false;
     vm->RegisterFunction("RunSearch", PapyrusClass, RunSearch);
     vm->RegisterFunction("StartAsyncSearch", PapyrusClass, StartAsyncSearch);
+    vm->RegisterFunction("StartFilteredSearch", PapyrusClass, StartFilteredSearch);
+    vm->RegisterFunction("StartItemSearch", PapyrusClass, StartItemSearch);
     vm->RegisterFunction("IsSearchFinished", PapyrusClass, IsSearchFinished);
-
+    vm->RegisterFunction("DidSearchFail", PapyrusClass, DidSearchFail);
+    vm->RegisterFunction("CancelSearch", PapyrusClass, CancelSearch);
     vm->RegisterFunction("GetSearchCount", PapyrusClass, GetSearchCount);
     vm->RegisterFunction("GetSearchResultName", PapyrusClass, GetSearchResultName);
+    vm->RegisterFunction("GetSearchResultPlugin", PapyrusClass, GetSearchResultPlugin);
     vm->RegisterFunction("GetSearchResult", PapyrusClass, GetSearchResult);
     vm->RegisterFunction("AddResultsToContainer", PapyrusClass, AddResultsToContainer);
-
+    vm->RegisterFunction("LoadPreferences", PapyrusClass, LoadPreferences);
+    vm->RegisterFunction("GetPreference", PapyrusClass, GetPreference);
+    vm->RegisterFunction("GetPluginFilter", PapyrusClass, GetPluginFilter);
+    vm->RegisterFunction("SavePreferences", PapyrusClass, SavePreferences);
+    vm->RegisterFunction("SaveSettings", PapyrusClass, SaveSettings);
+    logger::info("SearchAPI: registered 17 native functions (including legacy compatibility shims)");
     return true;
 }

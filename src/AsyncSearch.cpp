@@ -1,59 +1,48 @@
-
-#include <Sample/AsyncSearch.h>
-#include <Sample/Search.h>
-#include <spdlog/spdlog.h>
-
-using namespace Sample;
-
-AsyncSearch& AsyncSearch::Get() {
-    static AsyncSearch instance;
-    return instance;
-}
-
-AsyncSearch::AsyncSearch() : _running(true), _worker(&AsyncSearch::ThreadLoop, this) {}
-
+#include <SearchUI/AsyncSearch.h>
+#include <SearchUI/Search.h>
+using namespace SearchUI;
+AsyncSearch& AsyncSearch::Get() { static AsyncSearch instance; return instance; }
+AsyncSearch::AsyncSearch() : _worker(&AsyncSearch::ThreadLoop, this) {}
 AsyncSearch::~AsyncSearch() {
-    _running = false;
+    { std::lock_guard lock(_mutex); _running = false; _pending.reset(); _session.Cancel(); }
     _condition.notify_one();
     if (_worker.joinable()) _worker.join();
 }
-
-void AsyncSearch::QueueSearch(const std::string& term, bool exactMatch, uint32_t categoryMask, Callback onDone) {
-    {
-        std::lock_guard lock(_queueMutex);
-        _queue.push({term, exactMatch, categoryMask, onDone});
-    }
+void AsyncSearch::Cancel() {
+    std::lock_guard lock(_mutex);
+    _pending.reset(); _session.Cancel();
+}
+void AsyncSearch::QueueSearch(const std::string& term, std::uint32_t categories, int enchantment) {
+    { std::lock_guard lock(_mutex);
+      _pending = Job{_session.Begin(), term, categories, enchantment}; }
     _condition.notify_one();
 }
-
-void AsyncSearch::Update() {
-    std::queue<std::function<void()>> ready;
-    {
-        std::lock_guard lock(_resultsMutex);
-        std::swap(ready, _results);
-    }
-    while (!ready.empty()) {
-        ready.front()();
-        ready.pop();
+void AsyncSearch::RunSearch(const std::string& term, std::uint32_t categories) {
+    Job job;
+    { std::lock_guard lock(_mutex); _pending.reset(); job = {_session.Begin(), term, categories, 0}; }
+    Execute(job);
+}
+void AsyncSearch::Execute(const Job& job) {
+    try {
+        auto index = Search::GetIndex();
+        if (!index) throw std::runtime_error("Search index is not ready; wait for DataLoaded");
+        auto results = FilterIndex(*index, job.term, job.categories, job.enchantment,
+                                  [&] { return !_session.Current(job.generation); });
+        const auto count = results.size();
+        _session.Finish(job.generation, std::move(results));
+        logger::info("Search request {} completed: {} result(s)", job.generation, count);
+    } catch (const std::exception& e) {
+        _session.Finish(job.generation, {}, true);
+        logger::error("Search request {} failed: {}", job.generation, e.what());
     }
 }
-
 void AsyncSearch::ThreadLoop() {
-    while (_running) {
+    for (;;) {
         Job job;
-        {
-            std::unique_lock lock(_queueMutex);
-            _condition.wait(lock, [&] { return !_queue.empty() || !_running; });
-            if (!_running) break;
-            job = std::move(_queue.front());
-            _queue.pop();
-        }
-
-        auto results = Search::FindFormsByName(job.term, job.exactMatch, job.categoryMask);
-
-        {
-            std::lock_guard lock(_resultsMutex);
-            _results.push([results = std::move(results), cb = job.callback]() mutable { cb(std::move(results)); });
-        }
+        { std::unique_lock lock(_mutex);
+          _condition.wait(lock, [&] { return !_running || _pending.has_value(); });
+          if (!_running) return;
+          job = std::move(*_pending); _pending.reset(); }
+        Execute(job);
     }
 }

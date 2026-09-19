@@ -1,10 +1,10 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
-    "name": "commonlibsse-sample-plugin",
-    "version-string": "1.0.0",
+    "name": "searchui",
+    "version-string": "1.2.0",
     "port-version": 0,
-    "description": "Sample SKSE plugin based on CommonLibSSE, for unified AE/SE/VR deployment.",
-    "homepage": "https://www.skyrimng.com",
+    "description": "SearchUI item search for Skyrim SE, AE and VR.",
+    "homepage": "https://www.nexusmods.com/skyrimspecialedition/mods/155713",
     "license": "Apache-2.0",
     "features": {
         "scripts": {
@@ -25,29 +25,40 @@
         },
         "plugin": {
             "description": "Build the SKSE plugin.",
-          "dependencies": [
-            "articuno",
-            "commonlibsse-ng",
-            "yaml-cpp"
-          ]
+            "dependencies": [
+                {
+                    "version>=": "2025-10-27",
+                    "name": "directxtk"
+                },
+                {
+                    "version>=": "12.1.0",
+                    "name": "fmt"
+                },
+                {
+                    "version>=": "8.90",
+                    "name": "rapidcsv"
+                },
+                {
+                    "version>=": "1.16.0",
+                    "name": "spdlog"
+                },
+                "yaml-cpp"
+            ]
         },
         "tests": {
             "description": "Build tests for the SKSE plugin.",
             "dependencies": [
                 {
-                    "name": "commonlibsse-sample-plugin",
+                    "name": "searchui",
                     "default-features": false,
                     "features": [
                         "plugin"
                     ]
-                },
-                "catch2"
+                }
             ]
         }
     },
     "default-features": [
-        "scripts-dev",
-        "plugin",
-        "tests"
+        "plugin"
     ]
 }

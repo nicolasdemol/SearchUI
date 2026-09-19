@@ -107,22 +107,11 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
-// Compatible declarations with other sample projects.
+// DLL export declaration.
 #define DLLEXPORT __declspec(dllexport)
 
 using namespace std::literals;
 using namespace REL::literals;
-
-template <>
-struct fmt::formatter<REL::Version> {
-    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
-
-    template <typename FormatContext>
-    auto format(const REL::Version& v, FormatContext& ctx) const {
-        return format_to(ctx.out(), "{}.{}.{}.{}", v[0], v[1], v[2], v[3]);
-    }
-};
-
 
 namespace logger = SKSE::log;
 

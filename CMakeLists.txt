@@ -6,8 +6,8 @@ message("Using toolchain file ${CMAKE_TOOLCHAIN_FILE}.")
 ########################################################################################################################
 project(
         SearchUI
-        VERSION 1.0.0
-        DESCRIPTION "A SKSE plugin built with CommonLibSSE."
+        VERSION 1.2.0
+        DESCRIPTION "SearchUI item search for Skyrim SE, AE and VR."
         LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,8 +21,10 @@ configure_file(
         @ONLY)
 
 set(headers
-        include/Sample/Search.h
-        include/Sample/AsyncSearch.h)
+        include/SearchUI/Search.h
+        include/SearchUI/AsyncSearch.h
+        include/SearchUI/SearchCore.h
+        include/SearchUI/Preferences.h)
 
 set(sources
         src/Config.cpp
@@ -30,6 +32,8 @@ set(sources
         src/Papyrus.cpp
         src/Search.cpp
         src/AsyncSearch.cpp
+        src/SearchCore.cpp
+        src/Preferences.cpp
 
         ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 
@@ -53,39 +57,37 @@ message("\tTests: ${BUILD_TESTS}")
 ########################################################################################################################
 ## Configure target DLL
 ########################################################################################################################
-find_package(CommonLibSSE CONFIG REQUIRED)
-find_package(ryml CONFIG REQUIRED)
+include(cmake/CommonLib.cmake)
 find_package(yaml-cpp REQUIRED)
-find_path(ARTICUNO_INCLUDE_DIRS "articuno/articuno.h")
 
-add_commonlibsse_plugin(${PROJECT_NAME} SOURCES ${headers} ${sources})
+# CommonLib 8.1 sets both the NG structure-independence and Address Library v5 flags.
+# Do not restrict this declaration to 1.7.104 or impose SKSE 2.3.1 on older runtimes.
+add_commonlibsse_plugin(${PROJECT_NAME} USE_ADDRESS_LIBRARY SOURCES ${headers} ${sources})
 add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS "${PROJECT_NAME}")
 
 target_include_directories(${PROJECT_NAME}
         PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
-        $<INSTALL_INTERFACE:src>
-        ${ARTICUNO_INCLUDE_DIRS})
+        $<INSTALL_INTERFACE:src>)
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 target_link_libraries(${PROJECT_NAME}
-        PRIVATE
-        ryml::ryml)
-
-target_link_libraries(${PROJECT_NAME}
     PRIVATE
-    yaml-cpp
+    yaml-cpp::yaml-cpp
+    Normaliz
 )
+
+target_compile_options(${PROJECT_NAME} PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
 
 target_precompile_headers(${PROJECT_NAME}
         PRIVATE
         src/PCH.h)
 
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/Sample"
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/SearchUI"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
 install(TARGETS ${PROJECT_NAME}
@@ -95,28 +97,20 @@ install(TARGETS ${PROJECT_NAME}
 ## Configure unit tests
 ########################################################################################################################
 if(BUILD_TESTS)
-    find_package(Catch2 CONFIG REQUIRED)
-
-    include(CTest)
-    include(Catch)
-
-    add_executable(
-            ${PROJECT_NAME}Tests
-            ${headers}
-            ${tests})
-
-    target_link_libraries(
-            ${PROJECT_NAME}Tests
-            PRIVATE
-            ${PROJECT_NAME}
-            Catch2::Catch2WithMain)
-
-    target_precompile_headers(${PROJECT_NAME}Tests
-            PRIVATE
-            src/PCH.h)
-
-    catch_discover_tests(${PROJECT_NAME}Tests)
-    add_test(NAME ${PROJECT_NAME}Tests COMMAND ${PROJECT_NAME}Tests)
+    find_package(spdlog CONFIG REQUIRED)
+    enable_testing()
+    add_executable(SearchUITests test/Search.cpp src/SearchCore.cpp src/Preferences.cpp)
+    target_include_directories(SearchUITests PRIVATE include)
+    target_link_libraries(SearchUITests PRIVATE yaml-cpp::yaml-cpp spdlog::spdlog Normaliz)
+    target_compile_options(SearchUITests PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
+    add_test(NAME SearchUICore COMMAND SearchUITests)
+endif()
+option(BUILD_RUNTIME_PROBE "Build the offline CommonLib/Address Library integration probe." OFF)
+if(BUILD_RUNTIME_PROBE)
+    add_executable(SearchUIRuntimeProbe test/RuntimeProbe.cpp)
+    target_link_libraries(SearchUIRuntimeProbe PRIVATE CommonLibSSE::CommonLibSSE)
+    target_compile_definitions(SearchUIRuntimeProbe PRIVATE ENABLE_COMMONLIBSSE_TESTING=1)
+    target_precompile_headers(SearchUIRuntimeProbe PRIVATE src/PCH.h)
 endif()
 
 ########################################################################################################################
