@@ -9,6 +9,7 @@ FormIDs or entering console commands.
 [Download on Nexus Mods](https://www.nexusmods.com/skyrimspecialedition/mods/155713)
 · [Changelog](CHANGELOG.md)
 · [Report an issue](https://github.com/nicolasdemol/SearchUI/issues)
+· [Source, license and reuse permissions](#source-license-and-reuse-permissions)
 
 ## Features
 
@@ -188,6 +189,11 @@ Scripts/SearchAPI.pex
 Scripts/SearchMCM.pex
 Scripts/SearchUIController.pex
 Scripts/Source/*.psc
+LICENSE
+EXCEPTIONS.md
+THIRD_PARTY_NOTICES.md
+SOURCE.md
+licenses/*
 ```
 
 Do not distribute your personal settings file. The legacy `contrib` template
@@ -212,10 +218,46 @@ Additional technical notes (French):
 [1.2 implementation and validation](docs/community-1.2.0.md) ·
 [Historical runtime migration audit](docs/runtime-1.7.104.md).
 
-## Credits and license
+## Source, license and reuse permissions
+
+Copyright (c) 2025-2026 nicolasdemol / CORSAIRE (SearchUI contributions).
+
+SearchUI is free software: you may redistribute it and/or modify it under the
+GNU General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version
+(`GPL-3.0-or-later`). See [LICENSE](LICENSE) for the full terms. SearchUI is
+distributed without any warranty, including the implied warranties of
+merchantability or fitness for a particular purpose.
+
+For SearchUI's own contributions, the author also grants the Modding Exception
+and GPL-3.0 Linking Exception (with Corresponding Source) reproduced in
+[EXCEPTIONS.md](EXCEPTIONS.md). Here, Modded Code includes Skyrim and its variants;
+Modding Libraries include SKSE and Windows. These additional permissions allow
+the intended game integration without removing the source obligations for the
+plugin or the libraries covered by the exception.
+
+Source code and build instructions are public at
+<https://github.com/nicolasdemol/SearchUI>. Each distributed binary must identify
+its source revision in `SOURCE.md`; publish the matching source archive alongside
+the binary. A development branch is not a substitute for the source of an older
+release. See [SOURCE.md](SOURCE.md) for release provenance.
+
+You may copy, modify, translate, port and redistribute SearchUI, including in
+other mods and commercially, without asking for individual permission, provided
+you comply with the applicable licenses: preserve notices and credits, identify
+changes, provide corresponding source when distributing binaries, and preserve
+the GPL rights of recipients. No additional permission or donation is required.
+
+CommonLibSSE-NG 8.1.0 is licensed under GPL-3.0-or-later with its Modding Exception
+and GPL-3.0 Linking Exception. Third-party components and inherited template code
+retain their original licenses and notices; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Previously granted Apache-2.0
+rights are not revoked by this update.
+
+## Credits
 
 Thanks to the SKSE, SkyUI, UIExtensions, CommonLibSSE-NG, and Address Library
 contributors, and to everyone reporting issues and testing SearchUI.
 
-Repository license: [Apache 2.0](LICENSE). Dependencies and distributed game assets
-retain their respective licenses; the repository license does not replace those.
+Game assets and separately installed dependencies retain their respective
+licenses; this permission grant does not claim ownership of third-party work.
