@@ -93,6 +93,12 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/SearchUI"
 install(TARGETS ${PROJECT_NAME}
         DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 
+# Keep license terms and source information alongside installed distributions.
+install(FILES LICENSE EXCEPTIONS.md THIRD_PARTY_NOTICES.md SOURCE.md
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/SearchUI")
+install(DIRECTORY licenses/
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/SearchUI/licenses")
+
 ########################################################################################################################
 ## Configure unit tests
 ########################################################################################################################

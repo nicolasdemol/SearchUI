@@ -5,7 +5,7 @@
     "port-version": 0,
     "description": "SearchUI item search for Skyrim SE, AE and VR.",
     "homepage": "https://www.nexusmods.com/skyrimspecialedition/mods/155713",
-    "license": "Apache-2.0",
+    "license": "GPL-3.0-or-later",
     "features": {
         "scripts": {
             "description": "Install Papyrus sources for this program to develop on top of it."
